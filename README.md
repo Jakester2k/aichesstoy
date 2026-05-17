@@ -3,7 +3,6 @@
 Welcome to **AIChess**, a highly interactive, educational web tool designed to demystify how modern chess engines "think." By combining a traditional chess-playing interface with rich, real-time diagnostic visualizations, AIChess makes complex algorithms like Minimax and Alpha-Beta Pruning easy to understand.
 
 ![AIChess Engine Interface](./aichess.png) 
-*(Note: Remember to save your screenshot as `aichess.png` in the project root!)*
 
 ## 🌟 Overview
 
