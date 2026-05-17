@@ -1,0 +1,15 @@
+# Environments
+sklearn-env/
+venv/
+env/
+
+# Logs
+server.log
+*.log
+
+# Python
+__pycache__/
+*.pyc
+
+# OS
+.DS_Store

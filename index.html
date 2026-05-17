@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Chess Engine</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <script>
+        document.write('<link rel="stylesheet" href="styles.css?t=' + Date.now() + '">');
+    </script>
+</head>
+<body>
+    <div class="app-container">
+        <header>
+            <h1>AI Chess Engine</h1>
+        </header>
+        <main>
+            <!-- Left Column: Engine Internals -->
+            <div class="internals-section">
+                <div class="glass-panel" style="height: 100%;">
+                    <div class="log-header">
+                        <h2>Engine Internals</h2>
+                    </div>
+                    <div class="toggles-container">
+                        <div class="toggle-row" title="If disabled, uses pure Minimax (very slow).">
+                            <span>Alpha-Beta Pruning</span>
+                            <label class="switch">
+                                <input type="checkbox" id="toggle-ab" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="toggle-row" title="Sorts captures first to improve Alpha-Beta efficiency.">
+                            <span>Move Ordering</span>
+                            <label class="switch">
+                                <input type="checkbox" id="toggle-mo" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="toggle-row" title="Caches seen board states to avoid redundant calculations.">
+                            <span>Transposition Table</span>
+                            <label class="switch">
+                                <input type="checkbox" id="toggle-tt" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="toggle-row" title="Warms up the cache with a fast shallow search first.">
+                            <span>Iterative Deepening</span>
+                            <label class="switch">
+                                <input type="checkbox" id="toggle-id" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="toggle-row" title="Extends search for captures at the horizon to prevent blunders.">
+                            <span>Quiescence Search</span>
+                            <label class="switch">
+                                <input type="checkbox" id="toggle-qs" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="toggle-row" title="Colors the board to show which side controls which squares.">
+                            <span>Control Heatmap</span>
+                            <label class="switch">
+                                <input type="checkbox" id="toggle-heatmap">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="internals-description" id="internals-desc">
+                        Hover over a switch to see what it does.
+                    </div>
+                    <div class="metrics-panel">
+                        <div class="metric-row" title="Nodes evaluated this turn"><span>Positions Examined:</span> <span id="metric-nodes">0</span></div>
+                        <div class="metric-row" title="Nodes skipped via Cache"><span>Cache Hits:</span> <span id="metric-cache">0</span></div>
+                        <div class="metric-row" title="Branches skipped via Alpha-Beta"><span>Pruning Cutoffs:</span> <span id="metric-pruned">0</span></div>
+                        <div class="metric-divider"></div>
+                        <div class="metric-row efficiency" title="Percentage of calculations skipped"><span>Efficiency Score:</span> <span id="metric-efficiency">0%</span></div>
+                        <canvas id="metrics-chart" width="220" height="60" style="width: 100%; margin-top: 12px; border-radius: 4px; background: rgba(0,0,0,0.2);"></canvas>
+                        <div class="metric-row" style="margin-top: 8px; font-size: 0.75rem;">
+                            <span>Compress Timeline</span>
+                            <label class="switch" style="transform: scale(0.7); transform-origin: right;">
+                                <input type="checkbox" id="toggle-compress">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Middle Column: Board -->
+            <div class="board-section">
+                <div class="board-wrapper">
+                    <!-- Evaluation Bar -->
+                    <div class="eval-bar-container">
+                        <div id="eval-fill" class="eval-fill"></div>
+                        <span id="eval-text" class="eval-text">0.0</span>
+                    </div>
+
+                    <div class="rank-markers">
+                        <div>8</div><div>7</div><div>6</div><div>5</div>
+                        <div>4</div><div>3</div><div>2</div><div>1</div>
+                    </div>
+                    <div id="chessboard" class="board"></div>
+                    <div class="corner"></div>
+                    <div class="file-markers">
+                        <div>a</div><div>b</div><div>c</div><div>d</div>
+                        <div>e</div><div>f</div><div>g</div><div>h</div>
+                    </div>
+                </div>
+                <!-- Legend inside the board section strip -->
+                <div class="legend-strip">
+                    <div class="legend-item"><div class="legend-color" style="background: rgba(168, 85, 247, 0.8);"></div><span>Candidate Move</span></div>
+                    <div class="legend-item"><div class="legend-color" style="background: rgba(249, 115, 22, 0.8);"></div><span>Opponent Response</span></div>
+                    <div class="legend-item"><div class="legend-color" style="background: rgba(20, 184, 166, 0.8);"></div><span>Counter-Response</span></div>
+                    <div class="legend-item"><div class="legend-color" style="background: rgba(236, 72, 153, 0.8);"></div><span>Deeper Search</span></div>
+                    <div class="legend-item"><div class="legend-color" style="background: rgba(234, 179, 8, 0.8);"></div><span>Quiescence Search</span></div>
+                    <div class="legend-item"><div class="legend-color" style="background: rgba(59, 130, 246, 0.8);"></div><span>Expected Path (PV)</span></div>
+                </div>
+            </div>
+
+            <!-- 1/3 Column: Controls & Log -->
+            <div class="sidebar-section">
+                <div class="glass-panel controls-panel">
+                    <div class="controls-grid">
+                        <div class="control-item">
+                            <label>White</label>
+                            <select id="white-player"><option value="human" selected>Human</option><option value="ai">AI</option></select>
+                        </div>
+                        <div class="control-item">
+                            <label>Black</label>
+                            <select id="black-player"><option value="human">Human</option><option value="ai" selected>AI</option></select>
+                        </div>
+                        <div class="control-item">
+                            <label>Depth</label>
+                            <select id="depth-select">
+                                <option value="1">1 (Fast)</option>
+                                <option value="2">2 (Medium)</option>
+                                <option value="3" selected>3 (Standard)</option>
+                                <option value="4">4 (Deep)</option>
+                            </select>
+                        </div>
+                        <div class="control-item">
+                            <label>Speed: <span id="speed-display">50 Hz</span></label>
+                            <input type="range" id="speed-slider" min="0" max="100" value="50">
+                        </div>
+                    </div>
+                    <div class="button-row">
+                        <button id="restart-btn" class="ui-btn">Restart Game</button>
+                        <button id="undo-btn" class="ui-btn" disabled>Undo</button>
+                        <button id="redo-btn" class="ui-btn" disabled>Redo</button>
+                    </div>
+                </div>
+
+                <div class="glass-panel log-panel">
+                    <div class="log-header">
+                        <h2>AI Narrative</h2>
+                        <div class="log-actions">
+                            <button id="pause-btn" class="ui-btn ui-btn-small">Pause</button>
+                            <button id="action-btn" class="ui-btn ui-btn-small ui-btn-primary" disabled>Waiting...</button>
+                        </div>
+                    </div>
+                    <div id="explanation-log" class="explanation-log">
+                        <div class="log-entry">Game started. Waiting for move...</div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+    <script>
+        document.write('<script src="script.js?t=' + Date.now() + '"><\/script>');
+    </script>
+</body>
+</html>
