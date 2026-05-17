@@ -64,3 +64,14 @@ Running the project locally is incredibly simple. All you need is Python install
 * **HTML / Vanilla CSS:** Designed with a sleek, modern, glassmorphic UI.
 * **Vanilla JavaScript:** All engine logic, minimax algorithms, and UI state updates are written in pure JS without heavy frontend frameworks.
 * **[chess.js](https://github.com/jhlywa/chess.js):** Utilized for fundamental move generation, legality validation, and FEN parsing.
+
+## 🛑 Project Status & Disclaimer
+
+Just a heads-up: this project is a personal toy that I "vibe-coded" for fun. As such:
+* **No Code Criticism:** I am not interested in unsolicited criticism or reviews of the code structure or implementation.
+* **Maintenance:** I may or may not continue working on this project in the future.
+* **Feedback:** I may or may not pay attention to suggestions, comments, or issues opened on this repository.
+
+## 📄 License
+
+All rights are retained by the author. Please see the [LICENSE](./LICENSE) file for more details.
